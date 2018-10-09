@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>React lab</title>
+
+<style type="text/less">
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {background: hsl(0,30%,95%);}
+
+button {
+  padding: 5px;
+}
+</style>
+
+</head>
+
+<body>
+<div id="container"></div>
+
+<script src="http://localhost:9091/less/less-v2.7.2.min.js"></script>
+<script src="http://localhost:9091/babel/babel-standalone-v7.0.0-alpha.20.min.js"></script>
+<script src="http://localhost:9091/babel/babel-polyfill-v7.0.0-alpha.20.min.js"></script>
+
+<script src="http://localhost:9091/react/react-with-addons-v15.4.2.js"></script>
+<script src="http://localhost:9091/react/react-dom-v15.4.2.js"></script>
+
+<script>
+  console.log(`
+    less: version ${less.version}
+    React: version ${React.version}
+  `);
+</script>
+
+<script type="text/babel" >
+
+
+class PortalModal extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
+  portalElement = null
+  portalId = `partalId-${Date.now()}`
+
+  componentDidMount() {
+    const p = document.createElement('div');
+    p.id = this.portalId;
+    document.body.appendChild(p)
+    this.portalElement = p;
+    this.componentDidUpdate();
+  }
+
+  componentWillUnmount() {
+     document.body.removeChild(this.portalElement);
+  }
+
+  componentDidUpdate() {
+    ReactDOM.render(<div className='portal-modal-content-wrapper'>{this.props.children}</div>, this.portalElement);
+  };
+
+  render() {
+    return null;
+  }
+}
+
+
+class Page extends React.Component {
+  state = {
+    mountPortal: false
+  };
+
+  toggleBox = () => {
+    this.setState({
+      mountPortal: !this.state.mountPortal
+    });
+  };
+
+
+  render () {
+
+    return <div className="page">
+      { this.state.mountPortal ?
+        (
+          <PortalModal>
+            <div>this is a Portal</div>
+          </PortalModal>
+        ) : null
+      }
+
+      <button
+        className="toggle-btn"
+        onClick={this.toggleBox}
+      >
+        toggle
+      </button>
+    </div>;
+  }
+}
+
+const reactContainer = document.getElementById('container');
+ReactDOM.render(<Page />, reactContainer);
+
+</script>
+</body>
+
+</html>

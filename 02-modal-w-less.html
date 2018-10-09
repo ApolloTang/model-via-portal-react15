@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>React lab</title>
+
+<style type="text/less">
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {background: hsl(0,30%,95%);}
+
+button {
+  padding: 5px;
+}
+
+.modal {
+  &-overlay {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: hsla(0,0%,20%, 0.5);
+    z-index: 1000;
+  }
+
+  &-container {
+    position: absolute;
+    top:0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1001;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  &-box {
+    width: 400px;
+    height: 200px;
+    background: white;
+  }
+  &-box:focus {
+    /* https://stackoverflow.com/questions/17324960/copy-chrome-default-inputs-outline-style */
+    outline:none; /*or outline-color:#FFFFFF; if the first doesn't work*/
+    border:1px solid #48A521;
+    -webkit-box-shadow: 0px 0px 4px 0px #48A521;
+    box-shadow: 0px 0px 4px 0px #48A521;
+  }
+}
+
+
+</style>
+
+</head>
+
+<body>
+<div id="container"></div>
+
+<script src="http://localhost:9091/less/less-v2.7.2.min.js"></script>
+<script src="http://localhost:9091/babel/babel-standalone-v7.0.0-alpha.20.min.js"></script>
+<script src="http://localhost:9091/babel/babel-polyfill-v7.0.0-alpha.20.min.js"></script>
+
+<script src="http://localhost:9091/react/react-with-addons-v15.4.2.js"></script>
+<script src="http://localhost:9091/react/react-dom-v15.4.2.js"></script>
+
+<script>
+  console.log(`
+    less: version ${less.version}
+    React: version ${React.version}
+  `);
+</script>
+
+<script type="text/babel" >
+
+
+class Portal extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
+  portalElement = null
+  portalId = `portal-${Date.now()}`
+
+  componentDidMount() {
+    const p = document.createElement('div');
+    p.id = this.portalId;
+    document.body.appendChild(p)
+    this.portalElement = p;
+    this.componentDidUpdate();
+  }
+
+  componentWillUnmount() {
+     document.body.removeChild(this.portalElement);
+  }
+
+  componentDidUpdate() {
+    ReactDOM.render(
+      <div className='portal-content-wrapper'>{this.props.children}</div>,
+      this.portalElement,
+      this.props.onPortalMounted
+    );
+  };
+
+  render() {
+    return null;
+  }
+}
+
+class Modal extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
+  handle_modalCloseSignal = () => {
+    this.props.modalCloseSignal()
+  }
+
+  handle_portalDidMount = () => {
+    this.modalContainerNode.focus()
+  }
+
+  setModalContainerNode = el => {
+    window.eee = this.modalContainerNode = el;
+  }
+
+  render() {
+    if (!this.props.open) return null;
+
+    return (
+      <Portal
+        onPortalMounted={this.handle_portalDidMount}
+      >
+        <div className="modal-overlay"></div>
+
+        <div className="modal-container">
+          <div
+            ref={this.setModalContainerNode}
+            className="modal-box"
+            tabIndex={0}
+            >
+            <header className="modal-header">
+              <button className="modal-close-button"
+                onClick={this.handle_modalCloseSignal}
+                >x</button>
+            </header>
+            <div className="modal-content">
+              {this.props.children}
+            </div>
+          </div>
+        </div>
+
+      </Portal>
+    )
+  }
+}
+
+class Page extends React.Component {
+  state = {
+    showModal: false
+  };
+
+  toggleShowModal = () => {
+    this.setState({
+      showModal: !this.state.showModal
+    });
+  };
+
+  render () {
+    return <div className="page">
+
+      <button
+        className="toggle-btn"
+        onClick={this.toggleShowModal}
+      >
+        toggle show modal
+      </button>
+
+      <Modal
+        open={this.state.showModal}
+        modalCloseSignal={this.toggleShowModal}
+      >
+        <div>modal content</div>
+      </Modal>
+
+    </div>;
+  }
+}
+
+const reactContainer = document.getElementById('container');
+ReactDOM.render(<Page />, reactContainer);
+
+</script>
+</body>
+
+</html>
